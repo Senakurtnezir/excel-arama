@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Excel Arama Uygulaması</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+    <div class="container mt-5">
+        <h2 class="text-center mb-4">Excel Dosyasından Kayıt Arama</h2>
+
+        <!-- Dosya Yükleme Formu -->
+        <form method="POST" enctype="multipart/form-data" class="mb-4 p-4 bg-white rounded shadow-sm">
+            <div class="mb-3">
+                <label for="excel_file" class="form-label">Excel Dosyası Yükle (.xlsx)</label>
+                <input type="file" name="excel_file" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Yükle</button>
+        </form>
+
+        {% if message %}
+        <div class="alert alert-info">{{ message }}</div>
+        {% endif %}
+
+        <!-- Arama Formu -->
+        <form action="/search" method="POST" class="mb-4 p-4 bg-white rounded shadow-sm">
+            <div class="mb-3">
+                <label for="query" class="form-label">Arama</label>
+                <input type="text" name="query" class="form-control" placeholder="İsim, soyisim, adres..." required>
+            </div>
+            <button type="submit" class="btn btn-success">Ara</button>
+        </form>
+
+        <!-- Sonuçlar -->
+        {% if tables %}
+    <div class="bg-white p-4 rounded shadow-sm">
+        <h4>Sonuçlar</h4>
+        {{ tables|safe }}
+    </div>
+{% endif %}
+
+    </div>
+
+</body>
+</html>
