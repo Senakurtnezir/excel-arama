@@ -3,6 +3,9 @@ import pandas as pd
 import os
 
 app = Flask(__name__)
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() == 'xlsx'
+
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB
 app.secret_key = 'gizli_anahtar'
 UPLOAD_FOLDER = 'uploads'
