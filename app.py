@@ -3,43 +3,46 @@ import pandas as pd
 import os
 
 app = Flask(__name__)
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB
 app.secret_key = 'gizli_anahtar'
 UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-uploaded_data = None
-
-
-# Globalde dataframe tutacağız
-df = None
-
+# Global veri yerine session kullanarak veri tutacağız
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
-    global uploaded_data  # bu satırı ekle
     if request.method == 'POST':
         file = request.files['excel_file']
-        if file.filename.endswith('.xlsx'):
-            df = pd.read_excel(file)
-            uploaded_data = df  # burada veriyi bellekte tutuyoruz
+        if file and file.filename.endswith('.xlsx'):
+            # Dosya yükleniyor ve okunuyor
+            df = pd.read_excel(file, engine='openpyxl')
+            # Veriyi session'a kaydediyoruz
+            session['uploaded_data'] = df.to_json()  # JSON formatında kaydediyoruz
             message = 'Dosya başarıyla yüklendi.'
         else:
             message = 'Lütfen sadece .xlsx uzantılı dosya yükleyin.'
         return render_template('index.html', message=message)
     return render_template('index.html')
 
-
+# Arama fonksiyonu
 @app.route('/search', methods=['POST'])
 def search():
-    global uploaded_data 
-    query = request.form['query'].lower()
-    if uploaded_data is None:
+    # Yüklenen veriyi session'dan alıyoruz
+    if 'uploaded_data' not in session:
         return render_template('index.html', message='Önce bir dosya yüklemelisiniz.')
 
-    # Tüm hücreleri birleştirip arama yap
+    uploaded_data_json = session['uploaded_data']
+    # JSON verisini DataFrame'e dönüştür
+    uploaded_data = pd.read_json(uploaded_data_json)
+
+    query = request.form['query'].lower()
+    
+    # Arama yapacak fonksiyon
     def match(row):
         combined = ' '.join(map(str, row)).lower()
         return all(part in combined for part in query.split())
 
+    # Veride arama yapıyoruz
     results = uploaded_data[uploaded_data.apply(match, axis=1)]
 
     if results.empty:
